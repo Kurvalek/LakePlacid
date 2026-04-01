@@ -43,6 +43,7 @@
     html {
       height: 100%;
       background: var(--bg);
+      overscroll-behavior: none;
     }
 
     body {
@@ -568,17 +569,17 @@
         currentX = touch.clientX - rect.left;
         currentY = touch.clientY - rect.top;
         mode = 'touch';
-        page.style.touchAction = 'none';
         ensureRunning();
       }, { passive: true });
 
       page.addEventListener('touchmove', function(e) {
         if (mode !== 'touch') return;
+        e.preventDefault();
         var touch = e.touches[0];
         var rect = page.getBoundingClientRect();
         currentX = touch.clientX - rect.left;
         currentY = touch.clientY - rect.top;
-      }, { passive: true });
+      }, { passive: false });
 
       page.addEventListener('touchend', function() {
         if (mode !== 'touch') return;
