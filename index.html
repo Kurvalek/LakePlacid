@@ -453,5 +453,163 @@
       });
     })();
   </script>
+
+  <script>
+    (function() {
+      var hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+      var hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      var hasHover = window.matchMedia('(hover: hover)').matches;
+      var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (hasFinePointer && !hasCoarsePointer) return;
+
+      var isHybrid = hasFinePointer && hasCoarsePointer;
+
+      var overlay = document.getElementById('bgOverlay');
+      var page = document.getElementById('page');
+
+      var currentX = 0, currentY = 0;
+      var currentRadius = 0;
+      var mode = 'idle';
+      var driftTimeOffset = 0;
+      var driftStartTime = 0;
+      var rafId = null;
+      var visible = true;
+      var resumeTimer = null;
+
+      var DRIFT_RADIUS = 165;
+      var TOUCH_RADIUS = 95;
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+
+      function applyMask() {
+        if (currentRadius < 1) {
+          overlay.style.webkitMaskImage = 'none';
+          overlay.style.maskImage = 'none';
+        } else {
+          var mask = 'radial-gradient(circle ' + currentRadius + 'px at ' + currentX + 'px ' + currentY + 'px, transparent 0%, transparent 25%, rgba(0,0,0,0.6) 55%, black 75%)';
+          overlay.style.webkitMaskImage = mask;
+          overlay.style.maskImage = mask;
+        }
+      }
+
+      function driftPos(time) {
+        var w = page.offsetWidth;
+        var h = page.offsetHeight;
+        return {
+          x: w / 2 + Math.sin(time * 0.0004) * (w * 0.3),
+          y: h / 2 + Math.sin(time * 0.0006) * (h * 0.2)
+        };
+      }
+
+      function tick(ts) {
+        if (!visible || mode === 'stopped' || mode === 'idle') {
+          rafId = null;
+          return;
+        }
+
+        if (mode === 'drift') {
+          var pos = driftPos(ts - driftStartTime + driftTimeOffset);
+          currentX = pos.x;
+          currentY = pos.y;
+          currentRadius = lerp(currentRadius, DRIFT_RADIUS, 0.03);
+        } else if (mode === 'touch') {
+          currentRadius = lerp(currentRadius, TOUCH_RADIUS, 0.15);
+        } else if (mode === 'fadeout') {
+          currentRadius = lerp(currentRadius, 0, 0.04);
+          if (currentRadius < 1) {
+            currentRadius = 0;
+            applyMask();
+            mode = 'idle';
+            rafId = null;
+            return;
+          }
+        }
+
+        applyMask();
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function ensureRunning() {
+        if (!rafId) rafId = requestAnimationFrame(tick);
+      }
+
+      function startDrift() {
+        if (mode === 'stopped' || prefersReducedMotion) return;
+        mode = 'drift';
+        driftStartTime = performance.now();
+        ensureRunning();
+      }
+
+      function startDriftFromCurrent() {
+        if (mode === 'stopped' || prefersReducedMotion) return;
+        var w = page.offsetWidth;
+        var cx = w / 2;
+        var normX = Math.max(-1, Math.min(1, (currentX - cx) / (w * 0.3)));
+        driftTimeOffset = Math.asin(normX) / 0.0004;
+        mode = 'drift';
+        driftStartTime = performance.now();
+        ensureRunning();
+      }
+
+      function stop() {
+        mode = 'stopped';
+        currentRadius = 0;
+        applyMask();
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
+      }
+
+      page.addEventListener('touchstart', function(e) {
+        if (mode === 'stopped') return;
+        if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = null; }
+        var touch = e.touches[0];
+        var rect = page.getBoundingClientRect();
+        currentX = touch.clientX - rect.left;
+        currentY = touch.clientY - rect.top;
+        mode = 'touch';
+        page.style.touchAction = 'none';
+        ensureRunning();
+      }, { passive: true });
+
+      page.addEventListener('touchmove', function(e) {
+        if (mode !== 'touch') return;
+        var touch = e.touches[0];
+        var rect = page.getBoundingClientRect();
+        currentX = touch.clientX - rect.left;
+        currentY = touch.clientY - rect.top;
+      }, { passive: true });
+
+      page.addEventListener('touchend', function() {
+        if (mode !== 'touch') return;
+        page.style.touchAction = '';
+        mode = 'fadeout';
+        resumeTimer = setTimeout(function() {
+          resumeTimer = null;
+          startDriftFromCurrent();
+        }, 2000);
+      });
+
+      document.addEventListener('visibilitychange', function() {
+        visible = !document.hidden;
+        if (visible && mode === 'drift') {
+          driftStartTime = performance.now();
+          ensureRunning();
+        }
+        if (visible && mode === 'fadeout') ensureRunning();
+      });
+
+      var darkObserver = new MutationObserver(function(mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+          if (document.body.classList.contains('dark')) { stop(); break; }
+        }
+      });
+      darkObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+      if (!isHybrid && !prefersReducedMotion) {
+        startDrift();
+      }
+    })();
+  </script>
 </body>
 </html>
