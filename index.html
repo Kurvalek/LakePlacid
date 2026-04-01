@@ -63,10 +63,27 @@
       min-height: 100dvh;
       padding: 15vh 24px 40px;
       position: relative;
+      background-image: url('/assets/landingBGposters.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .bg-overlay {
+      position: absolute;
+      inset: 0;
       background-image: url('/assets/landingBG.png');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
+      z-index: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .page > *:not(.bg-overlay) {
+      position: relative;
+      z-index: 1;
     }
 
     .content {
@@ -92,10 +109,21 @@
       font-weight: 500;
       color: var(--text);
       letter-spacing: 0.2px;
-      margin-bottom: 48px;
+      margin-bottom: 8px;
       opacity: 0;
       transform: translateY(8px);
       animation: fadeUp 0.8s ease 0.15s forwards;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+      margin-bottom: 48px;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp 0.8s ease 0.22s forwards;
     }
 
     .form-wrap {
@@ -255,8 +283,10 @@
     html.dark { background: #1a1a1a; }
     body.dark { background: #1a1a1a; color: #fff; }
     body.dark .page { background-image: url('/assets/landingBGDark.png'); }
+    body.dark .bg-overlay { opacity: 0; }
     body.dark .brand { filter: invert(1); }
     body.dark .tagline { color: rgba(255,255,255,0.75); }
+    body.dark .subtitle { color: rgba(255,255,255,0.85); }
     body.dark .success-msg p { color: #fff; }
     body.dark footer a { color: rgba(255,255,255,0.65); text-decoration-color: rgba(255,255,255,0.25); }
     body.dark footer a:hover { color: #fff; text-decoration-color: rgba(255,255,255,0.4); }
@@ -267,7 +297,7 @@
     body.dark .form-wrap input:focus-visible,
     body.dark .form-wrap button:focus-visible { outline-color: rgba(168, 164, 156, 0.25); }
 
-    html, body, .tagline, footer a, .privacy-link, .success-msg p {
+    html, body, .tagline, .subtitle, footer a, .privacy-link, .success-msg p {
       transition: background-color 0.6s ease, color 0.6s ease, text-decoration-color 0.4s ease;
     }
 
@@ -296,12 +326,14 @@
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="page" id="page">
+    <div class="bg-overlay" id="bgOverlay"></div>
     <main class="content">
       <h1>
         <img src="/assets/willcall-logo.svg" alt="willcall" class="brand">
       </h1>
-      <p class="tagline">Doors opening soon</p>
+      <p class="tagline">Your concert history, all in one place.</p>
+      <p class="subtitle">Doors opening soon</p>
       <div class="form-wrap" id="formWrap">
         <form id="waitlistForm" autocomplete="off">
           <label for="emailInput" class="visually-hidden">Email address</label>
@@ -369,6 +401,67 @@
         btn.textContent = 'Get on the list';
       }
     });
+  </script>
+
+  <script>
+    (function() {
+      var hasHover = window.matchMedia('(hover: hover)').matches;
+      if (!hasHover) return;
+
+      var overlay = document.getElementById('bgOverlay');
+      var page = document.getElementById('page');
+
+      var targetX = 0, targetY = 0;
+      var currentX = 0, currentY = 0;
+      var targetRadius = 0, currentRadius = 0;
+      var active = false;
+      var rafId = null;
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function updateMask() {
+        if (currentRadius < 1) {
+          overlay.style.webkitMaskImage = 'none';
+          overlay.style.maskImage = 'none';
+          if (!active) { rafId = null; return; }
+        } else {
+          var r = currentRadius;
+          var mask = 'radial-gradient(circle ' + r + 'px at ' + currentX + 'px ' + currentY + 'px, transparent 0%, transparent 25%, rgba(0,0,0,0.6) 55%, black 75%)';
+          overlay.style.webkitMaskImage = mask;
+          overlay.style.maskImage = mask;
+        }
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function tick() {
+        currentX = lerp(currentX, targetX, 0.1);
+        currentY = lerp(currentY, targetY, 0.1);
+        currentRadius = lerp(currentRadius, targetRadius, active ? 0.08 : 0.05);
+        updateMask();
+      }
+
+      page.addEventListener('mousemove', function(e) {
+        var rect = page.getBoundingClientRect();
+        targetX = e.clientX - rect.left;
+        targetY = e.clientY - rect.top;
+        targetRadius = 130;
+
+        if (!active) {
+          active = true;
+          currentX = targetX;
+          currentY = targetY;
+          if (!rafId) rafId = requestAnimationFrame(tick);
+        }
+      });
+
+      page.addEventListener('mouseleave', function() {
+        active = false;
+        targetRadius = 0;
+        if (!rafId) rafId = requestAnimationFrame(tick);
+      });
+    })();
   </script>
 </body>
 </html>
