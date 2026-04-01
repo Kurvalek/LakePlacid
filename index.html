@@ -198,26 +198,20 @@
       align-items: center;
       justify-content: center;
       width: 100%;
-      padding: 32px 0;
+      margin-top: 62px;
       opacity: 0;
       animation: fadeUp 0.5s ease forwards;
     }
 
     .success-msg p {
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 20px;
+      font-weight: 700;
       color: var(--text);
       margin: 0;
     }
 
     .success-msg.show {
       display: flex;
-    }
-
-    .doorguy {
-      width: 100px;
-      height: auto;
-      margin-bottom: 16px;
     }
 
     .error-msg {
@@ -263,11 +257,10 @@
 
     html.dark { background: #1a1a1a; }
     body.dark { background: #1a1a1a; color: #fff; }
-    body.dark .page { background-image: url('/assets/landingBGDark.png'); }
-    body.dark .bg-overlay { opacity: 0; }
+    body.dark .bg-overlay { background-image: url('/assets/landingBGDark.png'); }
     body.dark .brand { filter: invert(1); }
-    body.dark .tagline { color: rgba(255,255,255,0.75); }
-    body.dark .subtitle { color: rgba(255,255,255,0.85); }
+    body.dark .tagline { color: #f5f3ee; }
+    body.dark .subtitle { display: none; }
     body.dark .success-msg p { color: #fff; }
     body.dark footer a { color: rgba(255,255,255,0.65); }
     body.dark footer a:hover { color: #fff; text-decoration-color: rgba(255,255,255,0.4); }
@@ -336,7 +329,6 @@
         <p class="error-msg" id="errorMsg" role="alert" aria-live="assertive"></p>
       </div>
       <div class="success-msg" id="successMsg" role="status" aria-live="polite">
-        <img src="/assets/doorguy.svg" class="doorguy" alt="">
         <p>You're on the list.</p>
       </div>
     </main>
@@ -638,13 +630,6 @@
         }
         if (visible && mode === 'fadeout') ensureRunning();
       });
-
-      var darkObserver = new MutationObserver(function(mutations) {
-        for (var i = 0; i < mutations.length; i++) {
-          if (document.body.classList.contains('dark')) { stop(); break; }
-        }
-      });
-      darkObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
       if (!isHybrid && !prefersReducedMotion) {
         startDrift();
