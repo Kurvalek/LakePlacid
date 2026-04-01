@@ -436,9 +436,9 @@
       }
 
       function tick() {
-        currentX = lerp(currentX, targetX, 0.1);
-        currentY = lerp(currentY, targetY, 0.1);
-        currentRadius = lerp(currentRadius, targetRadius, active ? 0.08 : 0.05);
+        currentX = lerp(currentX, targetX, 0.75);
+        currentY = lerp(currentY, targetY, 0.75);
+        currentRadius = lerp(currentRadius, targetRadius, active ? 0.2 : 0.06);
         updateMask();
       }
 
