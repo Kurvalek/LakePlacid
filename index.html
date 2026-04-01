@@ -343,6 +343,8 @@
     <footer>
       <a href="https://www.kathleenstonedesign.com" target="_blank" rel="noopener noreferrer">K. Stone</a>
       <span class="footer-sep">|</span>
+      <a href="https://go.willcall.app">Backstage</a>
+      <span class="footer-sep">|</span>
       <a href="/privacy">Privacy</a>
     </footer>
   </div>
@@ -392,6 +394,43 @@
         btn.textContent = 'Get on the list';
       }
     });
+  </script>
+
+  <script>
+    (function() {
+      if (!window.matchMedia('(pointer: fine)').matches) return;
+
+      var SECRET = 'backstage';
+      var buffer = '';
+      var subtitle = document.querySelector('.subtitle');
+      var originalText = subtitle ? subtitle.textContent : '';
+
+      function onKey(e) {
+        var el = document.activeElement;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
+
+        var key = e.key.toLowerCase();
+        if (key.length !== 1) return;
+
+        buffer = (buffer + key).slice(-SECRET.length);
+
+        if (buffer === SECRET) {
+          buffer = '';
+          document.removeEventListener('keydown', onKey);
+          window.location.href = 'https://go.willcall.app';
+        }
+      }
+
+      document.addEventListener('keydown', onKey);
+
+      var obs = new MutationObserver(function() {
+        if (document.body.classList.contains('dark')) {
+          document.removeEventListener('keydown', onKey);
+          obs.disconnect();
+        }
+      });
+      obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    })();
   </script>
 
   <script>
