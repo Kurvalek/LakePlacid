@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
 
     const { error } = await supabase.from('waitlist').insert({ email });
     if (error) {
-      console.error('Waitlist insert error:', error.message);
+      console.error('Waitlist insert error:', error.message, error.details, error.hint, error.code);
       return res.status(500).json({ error: 'Could not save. Try again.' });
     }
 
