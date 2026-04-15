@@ -8,6 +8,13 @@
   <meta property="og:title" content="willcall — Doors opening soon">
   <meta property="og:description" content="Doors opening soon. Get on the list.">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://willcall.app/assets/ogImage.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="willcall — Doors opening soon">
+  <meta name="twitter:description" content="Doors opening soon. Get on the list.">
+  <meta name="twitter:image" content="https://willcall.app/assets/ogImage.png">
+  <link rel="canonical" href="https://willcall.app/">
+  <link rel="preload" href="/assets/landingBGDark.png" as="image">
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png">
@@ -214,6 +221,41 @@
       display: flex;
     }
 
+    .backstage-toast {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 24px;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: toastBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s forwards;
+    }
+
+    .toast-main {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .toast-main strong {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .toast-sub {
+      font-size: 12px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.45);
+      margin-top: 4px;
+    }
+
+    @keyframes toastBounce {
+      0% { opacity: 0; transform: translateY(10px); }
+      50% { opacity: 1; transform: translateY(-4px); }
+      70% { transform: translateY(2px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
     .error-msg {
       display: none;
       font-size: 13px;
@@ -330,6 +372,10 @@
       </div>
       <div class="success-msg" id="successMsg" role="status" aria-live="polite">
         <p>You're on the list.</p>
+        <div class="backstage-toast" id="backstageToast">
+          <span class="toast-main">Type <strong>backstage</strong> to access</span>
+          <span class="toast-sub">(or click the link below)</span>
+        </div>
       </div>
     </main>
     <footer>
